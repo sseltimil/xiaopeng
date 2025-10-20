@@ -39,25 +39,15 @@ class TodoService{
       return t;
     });
   }
-
-  // getTodos() {
-  //   re
-  // }
 }
 
 todoService = new TodoService();
-console.log(todoService.todos);
+const todoList = document.querySelector('.xp-todo-list');
 
-todoService.addTodo({
-  id: '56ty',
-  title: 'Todo 3',
-  status: 'pending',
-  completed: false
+todoService.todos.forEach(t => {
+  const todoItem = document.createElement('div');
+  todoItem.innerHTML = t.title;
+  todoList.appendChild(todoItem)
 });
 
-console.log(todoService.todos);
-todoService.remove('we23');
-console.log(todoService.todos);
-todoService.complete('sd34');
 
-console.log(todoService.todos);
