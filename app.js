@@ -1,3 +1,36 @@
+/*
+  app component
+  title component
+  filter component
+  list component
+*/
+
+class BaseViewComponent {
+  rootEle = null;
+}
+class App extends BaseViewComponent {
+  title = null;
+  todoFilter = null;
+  todoList = null;
+  TodoService = null;
+  constructor() {
+    this.title = new Title();
+    this.todoFilter = new TodoFilter();
+    this.todoList = new TodoList();
+    this.TodoService = new TodoService();
+  }
+}
+class Title extends BaseViewComponent {
+}
+
+class TodoFilter  extends BaseViewComponent {
+  
+}
+
+class TodoList extends BaseViewComponent { {
+  
+}
+
 class TodoService{
   todos = null;
   constructor(){
@@ -41,13 +74,5 @@ class TodoService{
   }
 }
 
-todoService = new TodoService();
-const todoList = document.querySelector('.xp-todo-list');
-
-todoService.todos.forEach(t => {
-  const todoItem = document.createElement('div');
-  todoItem.innerHTML = t.title;
-  todoList.appendChild(todoItem)
-});
 
 
