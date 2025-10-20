@@ -7,6 +7,15 @@
 
 class BaseViewComponent {
   rootEle = null;
+  constructor(option) {
+    
+    if(option) {
+      this.rootEle = document.createElement('div');
+      console.log(this.rootEle, '--------');
+      this.rootEle.className = option.class;
+    }
+    
+  }
 }
 class App extends BaseViewComponent {
   title = null;
@@ -14,20 +23,31 @@ class App extends BaseViewComponent {
   todoList = null;
   TodoService = null;
   constructor() {
-    this.title = new Title();
-    this.todoFilter = new TodoFilter();
-    this.todoList = new TodoList();
+    super();
+    this.rootEle = document.getElementById('xp-app');
+    this.title = new Title({ class:'xp-title' });
+    this.todoFilter = new TodoFilter({ class:'xp-filter' });
+    this.todoList = new TodoList({ class:'xp-todo-list' });
     this.TodoService = new TodoService();
+
+    this.initApp();
+  }
+
+  initApp() {
+    this.rootEle.appendChild(this.title.rootEle);
+    this.rootEle.appendChild(this.todoFilter.rootEle);
+    this.rootEle.appendChild(this.todoList.rootEle);
   }
 }
 class Title extends BaseViewComponent {
+  data = 'Xp Todo';
 }
 
 class TodoFilter  extends BaseViewComponent {
-  
+  data = ['all', 'pending', 'completed', 'removed'];
 }
 
-class TodoList extends BaseViewComponent { {
+class TodoList extends BaseViewComponent { 
   
 }
 
@@ -74,5 +94,6 @@ class TodoService{
   }
 }
 
-
+const app = new App();
+console.log(app);
 
