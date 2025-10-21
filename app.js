@@ -41,10 +41,25 @@ class App extends BaseViewComponent {
 }
 class Title extends BaseViewComponent {
   data = 'Xp Todo';
+  constructor(option) {
+    super(option);
+    this.rootEle.innerText = this.data;
+  }
 }
 
 class TodoFilter  extends BaseViewComponent {
   data = ['all', 'pending', 'completed', 'removed'];
+  constructor(option) {
+    super(option);
+    this.render();
+  }
+  render() {
+    this.data.forEach(status => {
+      const btn = document.createElement('button');
+      btn.innerText = status;
+      this.rootEle.appendChild(btn);
+    });
+  }
 }
 
 class TodoList extends BaseViewComponent { 
