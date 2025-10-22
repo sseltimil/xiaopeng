@@ -37,14 +37,16 @@ class App extends BaseViewComponent {
   title = null;
   todoFilter = null;
   todoList = null;
-  TodoService = null;
+  todoInput = null;
+  todoService = null;
   constructor() {
     super();
     this.rootEle = document.getElementById('xp-app');
+    this.todoService = new TodoService();
     this.title = new Title({ class:'xp-title' });
     this.todoFilter = new TodoFilter({ class:'xp-filter' });
-    this.todoList = new TodoList({ class:'xp-todo-list' });
-    this.TodoService = new TodoService();
+    this.todoList = new TodoList({ class:'xp-todo-list', data: this.todoService.todos });
+    this.todoInput = new TodoInput({ class:'xp-todo-input' });
 
     this.initApp();
     this.initEvent();
@@ -52,8 +54,7 @@ class App extends BaseViewComponent {
 
   initApp() {
     this.rootEle.appendChild(this.title.rootEle);
-
-    console.log(this.todoFilter);
+    this.rootEle.appendChild(this.todoInput.rootEle);
     this.rootEle.appendChild(this.todoFilter.rootEle);
     this.rootEle.appendChild(this.todoList.rootEle);
   }
@@ -62,6 +63,12 @@ class App extends BaseViewComponent {
     this.todoFilter.output.reg('onclickfilter', (data) => {
       console.log(data);
     });
+    this.todoInput.output.reg('onaddtodo', (data) => {
+      this.todoService.addTodo(data);
+    });
+    this.todoService.emitter.reg('onnewdata', (data) => {
+      this.todoList.setData(data, true);
+    })
   }
 }
 class Title extends BaseViewComponent {
@@ -78,10 +85,6 @@ class TodoFilter  extends BaseViewComponent {
       let button = document.createElement('button');
       button.innerText = item;
       this.rootEle.appendChild(button);
-      // button.addEventListener('click', () => {
-      //   console.log(item);
-      //   // this.output.emit('clickfilter', item);
-      // });
 
       button.onclick = (event) => {
         this.output.emit('onclickfilter', item);
@@ -101,17 +104,57 @@ class TodoItem extends BaseViewComponent {
   }
 }
 
+class TodoInput extends BaseViewComponent {
+  rootEle = document.createElement('div');
+  inputEle = document.createElement('input');
+  addBtn = document.createElement('button');
+  output = new Emitter();
+
+  constructor(option) {
+    super(option);
+
+    this.initView();
+    
+  }
+
+  initView() {
+    this.addBtn.innerText = '+';
+    this.rootEle.appendChild(this.inputEle);
+    this.rootEle.appendChild(this.addBtn);
+
+    this.addBtn.onclick = () => {
+      let todo = {
+        id: Math.random().toString(32),
+        title: this.inputEle.value,
+        status: 'pending',
+        completed: false
+      };
+      this.output.emit('onaddtodo', {...todo});
+      this.inputEle.value = '';
+    }
+  }
+}
+
 class TodoList extends BaseViewComponent { 
+  data = null; //todos data
   output = new Emitter();
   constructor(option) {
     super(option);
-    this.TodoService = new TodoService();
-    this.refresh();
+    const { data } = option;
+    this.setData(data, true);
   }
+  setData(newData, doRefresh) {
+    this.data = [ ...newData ];
+    console.log(this.data);
+    if(doRefresh) {
+      this.refresh();
+    }
+  }
+
 
   refresh() {
     this.rootEle.innerHTML = '';
-    this.TodoService.todos.forEach(todo => {
+    this.data.forEach(todo => {
       let todoItem = new TodoItem(todo);
       this.rootEle.appendChild(todoItem.rootEle);
     });
@@ -120,6 +163,8 @@ class TodoList extends BaseViewComponent {
 
 class TodoService{
   todos = null;
+  emitter = new Emitter();
+  
   constructor(){
     this.todos = [
       {
@@ -139,6 +184,7 @@ class TodoService{
 
   addTodo(todo){
     this.todos.push(todo);
+    this.emitter.emit('onnewdata', this.todos);
   }
 
   remove(id){
@@ -164,3 +210,4 @@ class TodoService{
 const app = new App();
 console.log(app);
 
+ 
