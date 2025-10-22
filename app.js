@@ -1,11 +1,3 @@
-/*
-  app component
-  title component
-  input component
-  filter component
-  list component
-*/
-
 class Emitter {
   on = {};
   reg(event, fn) {
@@ -33,20 +25,17 @@ class App extends BaseViewComponent {
   todoList = null;
   todoInput = null;
   todoService = null;
-
-  filter = 'all';   // 当前筛选状态
-  keyword = '';     // 当前搜索关键字
+  filter = 'all';
+  keyword = '';
 
   constructor() {
     super();
     this.rootEle = document.getElementById('xp-app');
     this.todoService = new TodoService();
-
     this.title = new Title({ class: 'xp-title' });
     this.todoInput = new TodoInput({ class: 'xp-input' });
     this.todoFilter = new TodoFilter({ class: 'xp-filter' });
     this.todoList = new TodoList({ class: 'xp-todo-list', data: this.todoService.todos });
-
     this.initApp();
     this.initEvent();
   }
@@ -59,47 +48,36 @@ class App extends BaseViewComponent {
   }
 
   initEvent() {
-    // ✅ 新增任务
     this.todoInput.output.reg('onaddtodo', (todo) => {
       this.todoService.addTodo(todo);
     });
 
-    // ✅ 输入搜索
     this.todoInput.output.reg('onsearch', (keyword) => {
       this.keyword = keyword;
       this.refreshList();
     });
 
-    // ✅ 切换过滤器
     this.todoFilter.output.reg('onclickfilter', (filterType) => {
       this.filter = filterType;
       this.refreshList();
     });
 
-    // ✅ Service -> List 同步数据
     this.todoService.emitter.reg('onnewdata', (data) => {
       this.refreshList();
     });
 
-    // 初始化
     this.refreshList();
   }
 
   refreshList() {
-    // 从 Service 获取所有 todos
     let todos = [...this.todoService.todos];
-
-    // 按过滤器筛选
     if (this.filter !== 'all') {
       todos = todos.filter(t => t.status === this.filter);
     }
-
-    // 按关键字筛选
     if (this.keyword) {
       const kw = this.keyword.toLowerCase();
       todos = todos.filter(t => t.title.toLowerCase().includes(kw));
     }
-
     this.todoList.setData(todos, true);
   }
 }
@@ -127,12 +105,9 @@ class TodoInput extends BaseViewComponent {
     this.inputEle.placeholder = 'Enter todo or search...';
     this.addBtn.innerText = 'Add';
     this.searchBtn.innerText = 'Search';
-
     this.rootEle.appendChild(this.inputEle);
     this.rootEle.appendChild(this.addBtn);
     this.rootEle.appendChild(this.searchBtn);
-
-    // 点击 Add 按钮添加任务
     this.addBtn.onclick = () => {
       const value = this.inputEle.value.trim();
       if (!value) return;
@@ -145,8 +120,6 @@ class TodoInput extends BaseViewComponent {
       this.output.emit('onaddtodo', todo);
       this.inputEle.value = '';
     };
-
-    // 点击 Search 按钮执行搜索
     this.searchBtn.onclick = () => {
       this.output.emit('onsearch', this.inputEle.value.trim());
     };
@@ -199,8 +172,6 @@ class TodoItem extends BaseViewComponent {
     this.data = data;
     this.rootEle = document.createElement('li');
     this.rootEle.innerText = this.data.title;
-
-    // 样式
     if (data.status === 'completed') {
       this.rootEle.style.textDecoration = 'line-through';
       this.rootEle.style.opacity = '0.6';
@@ -213,7 +184,6 @@ class TodoItem extends BaseViewComponent {
 class TodoService {
   todos = [];
   emitter = new Emitter();
-
   constructor() {
     this.todos = [
       { id: 'we23', title: 'Todo 1', status: 'pending', completed: false },
@@ -221,12 +191,10 @@ class TodoService {
       { id: 'ab89', title: 'Todo 3', status: 'pending', completed: false },
     ];
   }
-
   addTodo(todo) {
     this.todos.push(todo);
     this.emitter.emit('onnewdata', this.todos);
   }
-
   remove(id) {
     this.todos = this.todos.map(t => {
       if (t.id === id) t.status = 'removed';
@@ -234,7 +202,6 @@ class TodoService {
     });
     this.emitter.emit('onnewdata', this.todos);
   }
-
   complete(id) {
     this.todos = this.todos.map(t => {
       if (t.id === id) {
