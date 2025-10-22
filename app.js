@@ -1,44 +1,109 @@
 /*
   app component
   title component
+  input component
   filter component
   list component
 */
 
+class Emitter {
+  on = {};
+  reg(event, fn) {
+    if (!this.on[event]) this.on[event] = [];
+    this.on[event].push(fn);
+  }
+  emit(event, data) {
+    if (this.on[event]) this.on[event].forEach(fn => fn(data));
+  }
+}
+
 class BaseViewComponent {
   rootEle = null;
   constructor(option) {
-    
-    if(option) {
+    if (option) {
       this.rootEle = document.createElement('div');
-      console.log(this.rootEle, '--------');
       this.rootEle.className = option.class;
     }
-    
   }
 }
+
 class App extends BaseViewComponent {
   title = null;
   todoFilter = null;
   todoList = null;
-  TodoService = null;
+  todoInput = null;
+  todoService = null;
+
+  filter = 'all';   // 当前筛选状态
+  keyword = '';     // 当前搜索关键字
+
   constructor() {
     super();
     this.rootEle = document.getElementById('xp-app');
-    this.title = new Title({ class:'xp-title' });
-    this.todoFilter = new TodoFilter({ class:'xp-filter' });
-    this.todoList = new TodoList({ class:'xp-todo-list' });
-    this.TodoService = new TodoService();
+    this.todoService = new TodoService();
+
+    this.title = new Title({ class: 'xp-title' });
+    this.todoInput = new TodoInput({ class: 'xp-input' });
+    this.todoFilter = new TodoFilter({ class: 'xp-filter' });
+    this.todoList = new TodoList({ class: 'xp-todo-list', data: this.todoService.todos });
 
     this.initApp();
+    this.initEvent();
   }
 
   initApp() {
     this.rootEle.appendChild(this.title.rootEle);
+    this.rootEle.appendChild(this.todoInput.rootEle);
     this.rootEle.appendChild(this.todoFilter.rootEle);
     this.rootEle.appendChild(this.todoList.rootEle);
   }
+
+  initEvent() {
+    // ✅ 新增任务
+    this.todoInput.output.reg('onaddtodo', (todo) => {
+      this.todoService.addTodo(todo);
+    });
+
+    // ✅ 输入搜索
+    this.todoInput.output.reg('onsearch', (keyword) => {
+      this.keyword = keyword;
+      this.refreshList();
+    });
+
+    // ✅ 切换过滤器
+    this.todoFilter.output.reg('onclickfilter', (filterType) => {
+      this.filter = filterType;
+      this.refreshList();
+    });
+
+    // ✅ Service -> List 同步数据
+    this.todoService.emitter.reg('onnewdata', (data) => {
+      this.refreshList();
+    });
+
+    // 初始化
+    this.refreshList();
+  }
+
+  refreshList() {
+    // 从 Service 获取所有 todos
+    let todos = [...this.todoService.todos];
+
+    // 按过滤器筛选
+    if (this.filter !== 'all') {
+      todos = todos.filter(t => t.status === this.filter);
+    }
+
+    // 按关键字筛选
+    if (this.keyword) {
+      const kw = this.keyword.toLowerCase();
+      todos = todos.filter(t => t.title.toLowerCase().includes(kw));
+    }
+
+    this.todoList.setData(todos, true);
+  }
 }
+
 class Title extends BaseViewComponent {
   data = 'Xp Todo';
   constructor(option) {
@@ -47,68 +112,139 @@ class Title extends BaseViewComponent {
   }
 }
 
-class TodoFilter  extends BaseViewComponent {
+class TodoInput extends BaseViewComponent {
+  inputEle = document.createElement('input');
+  addBtn = document.createElement('button');
+  searchBtn = document.createElement('button');
+  output = new Emitter();
+
+  constructor(option) {
+    super(option);
+    this.initView();
+  }
+
+  initView() {
+    this.inputEle.placeholder = 'Enter todo or search...';
+    this.addBtn.innerText = 'Add';
+    this.searchBtn.innerText = 'Search';
+
+    this.rootEle.appendChild(this.inputEle);
+    this.rootEle.appendChild(this.addBtn);
+    this.rootEle.appendChild(this.searchBtn);
+
+    // 点击 Add 按钮添加任务
+    this.addBtn.onclick = () => {
+      const value = this.inputEle.value.trim();
+      if (!value) return;
+      const todo = {
+        id: Math.random().toString(36).slice(2),
+        title: value,
+        status: 'pending',
+        completed: false
+      };
+      this.output.emit('onaddtodo', todo);
+      this.inputEle.value = '';
+    };
+
+    // 点击 Search 按钮执行搜索
+    this.searchBtn.onclick = () => {
+      this.output.emit('onsearch', this.inputEle.value.trim());
+    };
+  }
+}
+
+class TodoFilter extends BaseViewComponent {
   data = ['all', 'pending', 'completed', 'removed'];
+  output = new Emitter();
   constructor(option) {
     super(option);
     this.render();
   }
+
   render() {
-    this.data.forEach(status => {
+    this.data.forEach(item => {
       const btn = document.createElement('button');
-      btn.innerText = status;
+      btn.innerText = item;
+      btn.onclick = () => this.output.emit('onclickfilter', item);
       this.rootEle.appendChild(btn);
     });
   }
 }
 
-class TodoList extends BaseViewComponent { 
-  
+class TodoList extends BaseViewComponent {
+  data = [];
+  constructor(option) {
+    super(option);
+    const { data } = option;
+    this.setData(data, true);
+  }
+
+  setData(newData, doRefresh) {
+    this.data = [...newData];
+    if (doRefresh) this.refresh();
+  }
+
+  refresh() {
+    this.rootEle.innerHTML = '';
+    this.data.forEach(todo => {
+      const todoItem = new TodoItem(todo);
+      this.rootEle.appendChild(todoItem.rootEle);
+    });
+  }
 }
 
-class TodoService{
-  todos = null;
-  constructor(){
+class TodoItem extends BaseViewComponent {
+  constructor(data) {
+    super();
+    this.data = data;
+    this.rootEle = document.createElement('li');
+    this.rootEle.innerText = this.data.title;
+
+    // 样式
+    if (data.status === 'completed') {
+      this.rootEle.style.textDecoration = 'line-through';
+      this.rootEle.style.opacity = '0.6';
+    } else if (data.status === 'removed') {
+      this.rootEle.style.color = 'gray';
+    }
+  }
+}
+
+class TodoService {
+  todos = [];
+  emitter = new Emitter();
+
+  constructor() {
     this.todos = [
-      {
-        id: 'we23',
-        title: 'Todo 1',
-        status: 'pending',
-        completed: false
-      },
-      {
-        id: 'sd34',
-        title: 'Todo 2',
-        status: 'pending',
-        completed: false
-      }
+      { id: 'we23', title: 'Todo 1', status: 'pending', completed: false },
+      { id: 'sd34', title: 'Todo 2', status: 'completed', completed: true },
+      { id: 'ab89', title: 'Todo 3', status: 'pending', completed: false },
     ];
   }
 
-  addTodo(todo){
+  addTodo(todo) {
     this.todos.push(todo);
+    this.emitter.emit('onnewdata', this.todos);
   }
 
-  remove(id){
+  remove(id) {
     this.todos = this.todos.map(t => {
-      if(t.id === id){
-        t.status = 'removed';
-      }
+      if (t.id === id) t.status = 'removed';
       return t;
     });
+    this.emitter.emit('onnewdata', this.todos);
   }
 
   complete(id) {
     this.todos = this.todos.map(t => {
-      if(t.id === id){
+      if (t.id === id) {
         t.completed = true;
         t.status = 'completed';
       }
       return t;
     });
+    this.emitter.emit('onnewdata', this.todos);
   }
 }
 
 const app = new App();
-console.log(app);
-
