@@ -215,14 +215,11 @@ class TodoService {
   todos = [];
   emitter = new Emitter();
   constructor() {
-    this.todos = [
-      { id: 'we23', title: 'Todo 1', status: 'pending', completed: false },
-      { id: 'sd34', title: 'Todo 2', status: 'completed', completed: true },
-      { id: 'ab89', title: 'Todo 3', status: 'pending', completed: false },
-    ];
+    this.todos = [...JSON.parse(localStorage.getItem('todos')) || []];
   }
   addTodo(todo) {
     this.todos.push(todo);
+    this.save()
     this.emitter.emit('onnewdata', this.todos);
   }
   remove(id) {
@@ -230,7 +227,12 @@ class TodoService {
       if (t.id === id) t.status = 'removed';
       return t;
     });
+    this.save()
     this.emitter.emit('onnewdata', this.todos);
+  }
+
+  save() {
+    localStorage.setItem('todos', JSON.stringify(this.todos));
   }
   complete(id) {
     this.todos = this.todos.map(t => {
