@@ -1,0 +1,147 @@
+#xp-app {
+  display: flex;
+  flex-direction: column; /* 垂直排列 */
+  align-items: center; /* 水平居中 */
+  justify-content: flex-start; /* 从上往下排列 */
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  font-family: sans-serif;
+  padding-top: 40px;
+}
+
+.xp-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+.xp-filter {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.xp-filter button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #e9ecef;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.xp-filter button:hover {
+  background-color: #dee2e6;
+}
+
+
+
+/* Search bar */
+.xp-search-bar {
+  display: flex;
+  width: 80%;
+  max-width: 500px;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.xp-search-bar input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.xp-search-bar button {
+  padding: 8px 16px;
+  border: none;
+  background: #90ee90;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.xp-search-bar button:hover {
+  background: #76d476;
+}
+
+/* Filter buttons */
+.xp-filter {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.xp-filter button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #e9ecef;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.xp-filter button:hover {
+  background: #dee2e6;
+}
+
+/* Todo list */
+.xp-todo-list {
+  width: 80%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.xp-todo-item{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #09c;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.xp-todoitem__title{
+  font-weight: bold;
+}
+.xp-todoitem__status{
+  font-size: 0.8rem;;
+}
+.xp-todoitem__remove-btn{
+  cursor: pointer;
+}
+.xp-todoitem__remove-btn:hover{
+  color: #dddddd;
+  font-size: 1.2rem;
+  transition: 0.3s font-size ease-in-out;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
