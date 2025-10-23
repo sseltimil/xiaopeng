@@ -69,6 +69,15 @@ class App extends BaseViewComponent {
     this.todoService.emitter.reg('onnewdata', (data) => {
       this.todoList.setData(data, true);
     })
+    this.todoFilter.output.reg('onclickfilter', (data) => {
+      if(data === 'all') {
+        this.todoService.allTodos();
+      } else if(data === 'pending') {
+        this.todoService.pendingTodos();
+      } else if(data === 'completed') {
+        this.todoService.completedTodos();
+      }
+    })
   }
 }
 class Title extends BaseViewComponent {
